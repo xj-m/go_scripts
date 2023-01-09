@@ -6,7 +6,6 @@ import (
 	"path/filepath"
 
 	"github.com/sirupsen/logrus"
-	"github.com/xj-m/go_scripts/compress"
 	"github.com/xj-m/go_scripts/file"
 )
 
@@ -31,7 +30,7 @@ func main() {
 	}
 
 	// compress copyToDirName
-	compress.BatchWork(copyToDirName, extNames, compressJPGFile)
+	file.BatchWork(copyToDirName, extNames, compressJPGFile)
 }
 
 func compressJPGFile(fp string, dstDir string) error {

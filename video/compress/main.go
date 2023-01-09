@@ -5,12 +5,11 @@ import (
 	"os/exec"
 	"path/filepath"
 
-	"github.com/xj-m/go_scripts/compress"
 	"github.com/xj-m/go_scripts/file"
 )
 
 func main() {
-	compress.BatchWork(".", []string{".mp4"}, compressMp4File)
+	file.BatchWork(".", []string{".mp4"}, compressMp4File)
 }
 
 func compressMp4File(fp string, dstDir string) error {
