@@ -9,7 +9,7 @@ import (
 )
 
 func CompressMp4File(fp string, dstDir string) error {
-	file.MkdirIfNotExist(dstDir, fp)
+	file.MkdirIfNotExist(dstDir)
 	// compress fp file, then save to dstDir
 	cmd := exec.Command(
 		"ffmpeg",
@@ -29,4 +29,3 @@ func CompressMp4File(fp string, dstDir string) error {
 	}
 	return nil
 }
-
