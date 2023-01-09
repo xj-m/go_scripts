@@ -10,7 +10,7 @@ import (
 )
 
 func main() {
-	compress.BatchWork([]string{".mp4"}, compressMp4File)
+	compress.BatchWork(".", []string{".mp4"}, compressMp4File)
 }
 
 func compressMp4File(fp string, dstDir string) error {

@@ -11,8 +11,8 @@ import (
 
 const COMPRESSED_DIR_NAME = "compressed"
 
-func BatchWork(extNames []string, workFunc func(fp string, dstDir string) error) {
-	files, err := file.GetAllFilesWithExtension(extNames)
+func BatchWork(rootDir string, extNames []string, workFunc func(fp string, dstDir string) error) {
+	files, err := file.GetAllFilesWithExtension(rootDir, extNames)
 	if err != nil {
 		logrus.Fatal(err)
 		return

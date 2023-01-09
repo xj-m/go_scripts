@@ -3,13 +3,35 @@ package main
 
 import (
 	"os/exec"
+	"path/filepath"
 
+	"github.com/sirupsen/logrus"
 	"github.com/xj-m/go_scripts/compress"
 	"github.com/xj-m/go_scripts/file"
 )
 
 func main() {
-	compress.BatchWork([]string{".mp4"}, compressJPGFile)
+	extNames := []string{".jpeg", ".jpg"}
+
+	// copy all files to copyToDirName
+	copyToDirName := "compressed_jpg"
+	files, err := file.GetAllFilesWithExtension(".", extNames)
+	if err != nil {
+		logrus.Fatal(err)
+		return
+	}
+	for _, fp := range files {
+		dst := filepath.Join(copyToDirName, fp)
+		file.MkdirIfNotExist(copyToDirName, fp)
+		cmd := exec.Command("cp", fp, dst)
+		err := cmd.Run()
+		if err != nil {
+			logrus.Fatal(err)
+		}
+	}
+
+	// compress copyToDirName
+	compress.BatchWork(copyToDirName, extNames, compressJPGFile)
 }
 
 func compressJPGFile(fp string, dstDir string) error {

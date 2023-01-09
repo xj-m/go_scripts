@@ -37,11 +37,11 @@ func MkdirIfNotExist(dstDir string, fp string) error {
 }
 
 // GetAllFilesWithExtension get all files that has target extension only in current dir
-func GetAllFilesWithExtension(extNames []string) ([]string, error) {
+func GetAllFilesWithExtension(rootDir string, extNames []string) ([]string, error) {
 	ret := []string{}
-	err := filepath.WalkDir(".", func(path string, d os.DirEntry, err error) error {
+	err := filepath.WalkDir(rootDir, func(path string, d os.DirEntry, err error) error {
 		// if in sub dir, skip
-		if d.IsDir() && path != "." {
+		if d.IsDir() && path != rootDir {
 			return filepath.SkipDir
 		}
 		if err != nil {
