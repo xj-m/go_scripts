@@ -3,10 +3,12 @@ package file
 
 import (
 	"fmt"
+	"io"
 	"os"
 	"os/exec"
 	"path/filepath"
 	"strings"
+	"time"
 
 	"github.com/djherbis/times"
 )
@@ -110,4 +112,88 @@ func GetAllSubDirs(dir string) ([]string, error) {
 		return nil
 	})
 	return ret, err
+}
+
+func GetYearMonDay(t time.Time) (string, string, string) {
+	// get year, mon, day from time
+	// year: 2021, mon: 2021-01, day: 2021-01-01
+	year := fmt.Sprintf("%d", t.Year())
+	mon := fmt.Sprintf("%d-%02d", t.Year(), t.Month())
+	day := fmt.Sprintf("%d-%02d-%02d", t.Year(), t.Month(), t.Day())
+	return year, mon, day
+}
+
+func NewPathWithYearMon(path string, t time.Time) string {
+	// get year, mon, day from time
+	year, mon, _ := GetYearMonDay(t)
+	return fmt.Sprintf("%s/%s/%s", year, mon, path)
+}
+
+func MoveFile(srcPath, dstPath string) error {
+	// move file from srcPath to dstPath
+	// if dstPath exist, return error
+	if _, err := os.Stat(dstPath); !os.IsNotExist(err) {
+		return ErrorFileAlreadyExist
+	}
+	// create parent dir for dstPath if not exist
+	parentDir := filepath.Dir(dstPath)
+	MkdirIfNotExist(parentDir)
+	// move file
+	err := os.Rename(srcPath, dstPath)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func ExtractTimeFromFileName(filePath string) (time.Time, error) {
+	// get filename from path (without ext name) and extract time from filename
+	filename := filepath.Base(filePath)
+	// get filename without ext
+	filenameWithoutExt := strings.TrimSuffix(filename, filepath.Ext(filename))
+	// get time from filename, using cur timezone
+	t, err := time.ParseInLocation("2006-01-02", filenameWithoutExt, time.Local)
+	if err != nil {
+		return time.Time{}, err
+	}
+	return t, nil
+}
+
+func IsFileExist(path string) bool {
+	// check if file exist
+	if _, err := os.Stat(path); os.IsNotExist(err) {
+		return false
+	}
+	return true
+}
+
+func CopyFileWithIO(srcPath, dstPath string) error {
+	// cp file from srcPath to dstPath
+	// if dstPath exist, return error
+	if _, err := os.Stat(dstPath); !os.IsNotExist(err) {
+		return ErrorFileAlreadyExist
+	}
+	// create parent dir for dstPath if not exist
+	parentDir := filepath.Dir(dstPath)
+	MkdirIfNotExist(parentDir)
+	// os cp file, not link
+	srcFile, err := os.Open(srcPath)
+	if err != nil {
+		return err
+	}
+	defer srcFile.Close()
+	dstFile, err := os.Create(dstPath)
+	if err != nil {
+		return err
+	}
+	defer dstFile.Close()
+	_, err = io.Copy(dstFile, srcFile)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func TruncateToDay(t time.Time) time.Time {
+	return time.Date(t.Year(), t.Month(), t.Day(), 0, 0, 0, 0, t.Location())
 }
