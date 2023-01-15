@@ -2,11 +2,14 @@
 package file
 
 import (
+	"bufio"
 	"fmt"
 	"io"
+	"io/ioutil"
 	"os"
 	"os/exec"
 	"path/filepath"
+	"strconv"
 	"strings"
 	"time"
 
@@ -14,7 +17,10 @@ import (
 )
 
 // ErrorFileAlreadyExist is a error when file already exist
-var ErrorFileAlreadyExist = fmt.Errorf("file already exist")
+var (
+	ErrorFileAlreadyExist = fmt.Errorf("file already exist")
+	ErrorFileNotExist     = fmt.Errorf("file not exist")
+)
 
 // GetFileSize return file size in human readable format, like 1.2M, 1.2G
 func GetFileSize(fp string) string {
