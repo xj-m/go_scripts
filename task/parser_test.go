@@ -2,8 +2,11 @@ package task
 
 import (
 	"io/ioutil"
+	"os"
 	"reflect"
 	"testing"
+
+	"github.com/xj-m/go_scripts/file"
 )
 
 func TestMergeTasks(t *testing.T) {
@@ -219,5 +222,38 @@ func TestParseThenWrite(t *testing.T) {
 	if err != nil {
 		t.Errorf("WriteFile() error = %v", err)
 		return
+	}
+}
+
+func TestDailyMerge(t *testing.T) {
+	MAIN_TODO_FILE := "todo.todo"
+
+	curTodoFilePath := "2023-01-18.todo"
+	// if curTodoFilePath not exist, panic
+	if _, err := os.Stat(curTodoFilePath); err != nil {
+		panic(err)
+	}
+
+	srcFilePath := curTodoFilePath
+	dstFilePath := MAIN_TODO_FILE
+
+	srcTask, err := ParseTaskFromTodoFile(srcFilePath)
+	if err != nil {
+		panic(err)
+	}
+	// remove parts that doesn't want to be merged
+	srcTask.TaskName2task["all"].FilterItems(HighPriorityFilter)
+
+	// read dst
+	dstTask, err := ParseTaskFromTodoFile(dstFilePath)
+	if err != nil {
+		panic(err)
+	}
+	// merge
+	mergedTask := MergeTasks(srcTask, dstTask)
+	// write to dst
+	err = file.OverWriteFile(dstFilePath, mergedTask.ToContent())
+	if err != nil {
+		panic(err)
 	}
 }

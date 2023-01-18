@@ -31,12 +31,7 @@ func main() {
 		panic(err)
 	}
 	// remove parts that doesn't want to be merged
-	srcTask.TaskName2task["all"].RemoveTaskByNames([]string{
-		"routine",
-	})
-	srcTask.RemoveTaskByNames([]string{
-		"Archive",
-	})
+	srcTask.TaskName2task["all"].Filter(task.FilterRoutineArchive)
 
 	// read dst
 	dstTask, err := task.ParseTaskFromTodoFile(dstFilePath)

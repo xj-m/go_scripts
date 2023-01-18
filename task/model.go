@@ -86,10 +86,22 @@ func (t *Task) RemoveTaskByNames(taskNames []string) {
 	}
 }
 
-func (t *Task) FilterTask(f func(task Task) bool) {
+func (t *Task) RemoveItem(itemToRemove *Item) {
+	for i, item := range t.Items {
+		if itemToRemove == item {
+			t.Items = append(t.Items[:i], t.Items[i+1:]...)
+			break
+		}
+	}
+}
+
+func (t *Task) Filter(fs ...func(task Task) bool) {
 	for taskName, task := range t.TaskName2task {
-		if !f(*task) {
-			delete(t.TaskName2task, taskName)
+		for _, f := range fs {
+			if !f(*task) {
+				delete(t.TaskName2task, taskName)
+				break
+			}
 		}
 	}
 	t.TaskNames = []string{}
@@ -97,7 +109,22 @@ func (t *Task) FilterTask(f func(task Task) bool) {
 		t.TaskNames = append(t.TaskNames, taskName)
 	}
 	for _, task := range t.TaskName2task {
-		task.FilterTask(f)
+		task.Filter(fs...)
+	}
+}
+
+func (t *Task) FilterItems(fs ...func(item Item) bool) {
+	for i := 0; i < len(t.Items); i++ {
+		for _, f := range fs {
+			if !f(*t.Items[i]) {
+				t.Items = append(t.Items[:i], t.Items[i+1:]...)
+				i--
+				break
+			}
+		}
+	}
+	for _, task := range t.TaskName2task {
+		task.FilterItems(fs...)
 	}
 }
 
