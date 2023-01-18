@@ -200,12 +200,3 @@ func isItem(runes []rune) bool {
 		return false
 	}
 }
-
-func contains[T comparable](elements []T, v T) bool {
-	for _, s := range elements {
-		if v == s {
-			return true
-		}
-	}
-	return false
-}

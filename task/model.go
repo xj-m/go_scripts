@@ -23,6 +23,44 @@ func (t tagK2v) ToContent(names []string) string {
 	return ret
 }
 
+var (
+	ItemStatusTodo = ItemStatus{
+		Name:   "todo",
+		Symbol: "❍",
+	}
+	ItemStatusDone = ItemStatus{
+		Name:   "done",
+		Symbol: "✔",
+	}
+	ItemStatusCanceled = ItemStatus{
+		Name:   "canceled",
+		Symbol: "✘",
+	}
+)
+
+type ItemStatus struct {
+	Name   string
+	Symbol string
+}
+
+func ParseItemStatusFromLine(line string) (ItemStatus, error) {
+	line = strings.TrimSpace(line)
+	runes := []rune(line)
+	if len(runes) == 0 {
+		return ItemStatus{}, fmt.Errorf("line is empty")
+	}
+	switch runes[0] {
+	case '❍':
+		return ItemStatusTodo, nil
+	case '✔':
+		return ItemStatusDone, nil
+	case '✘':
+		return ItemStatusCanceled, nil
+	default:
+		return ItemStatus{}, fmt.Errorf("invalid item status symbol: %v", line[0])
+	}
+}
+
 type Task struct {
 	TaskName2task map[string]*Task
 	TaskNames     []string
@@ -32,6 +70,7 @@ type Task struct {
 	Parent        *Task
 	TagK2v        tagK2v
 	TagNames      []string
+	Status        string
 }
 
 func (t *Task) RemoveTaskByNames(taskNames []string) {
@@ -41,6 +80,24 @@ func (t *Task) RemoveTaskByNames(taskNames []string) {
 	t.TaskNames = []string{}
 	for taskName := range t.TaskName2task {
 		t.TaskNames = append(t.TaskNames, taskName)
+	}
+	for _, task := range t.TaskName2task {
+		task.RemoveTaskByNames(taskNames)
+	}
+}
+
+func (t *Task) FilterTask(f func(task Task) bool) {
+	for taskName, task := range t.TaskName2task {
+		if !f(*task) {
+			delete(t.TaskName2task, taskName)
+		}
+	}
+	t.TaskNames = []string{}
+	for taskName := range t.TaskName2task {
+		t.TaskNames = append(t.TaskNames, taskName)
+	}
+	for _, task := range t.TaskName2task {
+		task.FilterTask(f)
 	}
 }
 
@@ -132,7 +189,7 @@ var TaskName2Priority = map[string]int{
 }
 
 type Item struct {
-	Status   string
+	Status   ItemStatus
 	Content  string
 	Comments []string
 	Level    int
@@ -146,7 +203,7 @@ func (item *Item) ToContent() string {
 	base := strings.Repeat("\t", item.Level)
 	lines := []string{
 		// base + item.Status + " " + item.Content + item.TagK2v.ToContent(item.TagNames),
-		fmt.Sprintf("%s%s %s%s", base, item.Status, item.Content, item.TagK2v.ToContent(item.TagNames)),
+		fmt.Sprintf("%s%s %s%s", base, item.Status.Symbol, item.Content, item.TagK2v.ToContent(item.TagNames)),
 	}
 	for _, comment := range item.Comments {
 		lines = append(lines, base+"\t"+comment)
@@ -159,7 +216,10 @@ func (item *Item) ToContent() string {
 
 func (item *Item) ParseFromLine(line string) error {
 	parseRes := parseLine(line)
-	status := string([]rune(parseRes.Content)[:1])
+	status, err := ParseItemStatusFromLine(line)
+	if err != nil {
+		return err
+	}
 	content := strings.Trim(string([]rune(parseRes.Content)[1:]), " ")
 	parsedItem := &Item{
 		Status:   status,
