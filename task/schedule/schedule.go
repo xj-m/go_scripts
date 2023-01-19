@@ -71,3 +71,15 @@ func TimeToFileName(t time.Time) string {
 	t = file.TruncateToDay(t)
 	return t.Format("2006-01-02") + ".todo"
 }
+
+func GetTodayTodoFilePath() string {
+	scheduleDirName := "schedule"
+	return filepath.Join(scheduleDirName, TimeToFileName(time.Now()))
+}
+
+
+func GetTodaySymlink() string {
+	scheduleDirName := "schedule"
+	return filepath.Join(scheduleDirName, TimeToFileName(time.Now()))
+}
+
