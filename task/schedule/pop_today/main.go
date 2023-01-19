@@ -9,17 +9,18 @@ import (
 	"github.com/xj-m/go_scripts/task/schedule"
 )
 
-var mainTodoFileName = "todo.todo"
-
 func main() {
-	todayFilePath := schedule.GetTodayTodoFilePath()
+	todayFilePath, err := schedule.GetTodayTodoFilePath()
+	if err != nil {
+		panic(err)
+	}
 
 	// if curTodoFilePath not exist, panic
 	if _, err := os.Stat(todayFilePath); err != nil {
 		panic(err)
 	}
 
-	srcFilePath := mainTodoFileName
+	srcFilePath := schedule.MainTodoFilePath
 
 	srcTask, err := task.ParseTaskFromTodoFile(srcFilePath)
 	if err != nil {

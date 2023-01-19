@@ -25,7 +25,7 @@ func BatchWork(rootDir string, extNames []string, workFunc func(fp string, dstDi
 			logrus.Infof("[compressing](%v/%v): %v", i+1, len(files), fp)
 			err := workFunc(fp, COMPRESSED_DIR_NAME)
 			switch err {
-			case ErrorFileAlreadyExist:
+			case ErrFileAlreadyExist:
 				logrus.Infof("(%v/%v) file \"%v\" already exist, skip", i+1, len(files), fp)
 			case nil:
 				logrus.Infof("(%v/%v) compress file \"%v\" success, size before: %v, after compress: %v", i+1, len(files), fp, GetFileSize(fp), GetFileSize(filepath.Join("compressed", fp)))

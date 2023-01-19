@@ -2,6 +2,7 @@
 package schedule
 
 import (
+	"fmt"
 	"path/filepath"
 	"time"
 
@@ -10,8 +11,15 @@ import (
 	"github.com/xj-m/go_scripts/task"
 )
 
+var (
+	ScheduleDirPath  = "schedule"
+	MainTodoFilePath = "todo.todo"
+	TemplateFilePath = ScheduleDirPath + "/temp-daily.todo"
+	ArchivedDirName  = "archived/todo"
+)
+
 // func get_times_from_daily_folder
-func getFp2timeUnderDir(scheduleDirName string) map[string]time.Time {
+func GetFp2timeUnderDir(scheduleDirName string) map[string]time.Time {
 	todoFiles, err := file.GetAllFilesWithExtension(scheduleDirName, []string{".todo"})
 	if err != nil {
 		panic(err)
@@ -32,23 +40,56 @@ func getFp2timeUnderDir(scheduleDirName string) map[string]time.Time {
 }
 
 func ArchiveScheduleTodoFiles(scheduleDirName, archiveDirName string) error {
-	for fp, t := range getFp2timeUnderDir(scheduleDirName) {
+	for fp, t := range GetFp2timeUnderDir(scheduleDirName) {
 		if t.Before(file.TruncateToDay(time.Now())) {
+			// move unfinished task to main todo file
+			MoveTaskAndOverwriteDst(fp, MainTodoFilePath)
+
 			// archive
 			year, mon, _ := file.GetYearMonDay(t)
+
 			// create folder
 			archivedFolder := filepath.Join(archiveDirName, year, mon)
 			err := file.MkdirIfNotExist(archivedFolder)
 			if err != nil {
-				return err
+				return fmt.Errorf("failed to create folder %s: %w", archivedFolder, err)
 			}
 			archiveFilePath := filepath.Join(archivedFolder, filepath.Base(fp))
+
 			// move file
 			err = file.MoveFile(fp, archiveFilePath)
 			if err != nil {
-				return err
+				return fmt.Errorf("failed to move file %s to %s: %w", fp, archiveFilePath, err)
 			}
 		}
+	}
+	return nil
+}
+
+func MoveTaskAndOverwriteDst(srcFilePath, dstFilePath string) error {
+	logrus.Infof("[task] move task from %s to %s", srcFilePath, dstFilePath)
+
+	// parse task from src
+	srcTask, err := task.ParseTaskFromTodoFile(srcFilePath)
+	if err != nil {
+		return err
+	}
+	srcTask.TaskName2task["all"].Filter(task.FilterNotRoutineArchive)
+
+	// read dst
+	dstTask, err := task.ParseTaskFromTodoFile(dstFilePath)
+	if err != nil {
+		panic(err)
+	}
+
+	// create new task with merged items
+	mergedTask := task.MergeTasks(srcTask, dstTask)
+	mergedTask.SortItemsByPriority()
+
+	// write to dst
+	err = file.OverWriteFile(dstFilePath, mergedTask.ToContent())
+	if err != nil {
+		return err
 	}
 	return nil
 }
@@ -73,19 +114,36 @@ func TimeToFileName(t time.Time) string {
 	return t.Format("2006-01-02") + ".todo"
 }
 
-func GetTodayTodoFilePath() string {
-	scheduleDirName := "schedule"
-	return filepath.Join(scheduleDirName, TimeToFileName(time.Now()))
+func GetYesterdayTodoFilePath() (string, error) {
+	ret := filepath.Join(ScheduleDirPath, TimeToFileName(time.Now().Add(-24*time.Hour)))
+	if !file.IsFileExist(ret) {
+		return ret, file.ErrFileNotExist
+	}
+	return ret, nil
 }
 
-func GetTmrTodoFilePath() string {
-	scheduleDirName := "schedule"
-	return filepath.Join(scheduleDirName, TimeToFileName(time.Now().Add(24*time.Hour)))
+func GetTodayTodoFilePath() (string, error) {
+	ret := filepath.Join(ScheduleDirPath, TimeToFileName(time.Now()))
+	if !file.IsFileExist(ret) {
+		return ret, file.ErrFileNotExist
+	}
+	return ret, nil
+}
+
+func GetTmrTodoFilePath() (string, error) {
+	ret := filepath.Join(ScheduleDirPath, TimeToFileName(time.Now().Add(24*time.Hour)))
+	if !file.IsFileExist(ret) {
+		return ret, file.ErrFileNotExist
+	}
+	return ret, nil
 }
 
 func GetTodaySymlink() string {
-	scheduleDirName := "schedule"
-	return filepath.Join(scheduleDirName, TimeToFileName(time.Now()))
+	todayTodoFilePath, _ := GetTodayTodoFilePath()
+	// create "today.todo" symlink pointing to today's todo file
+	todaySymlink := filepath.Join(ScheduleDirPath, "today.todo")
+	file.CreateSymlink(todayTodoFilePath, todaySymlink)
+	return todaySymlink
 }
 
 func SortAndOverWriteTaskFile(fp string) error {

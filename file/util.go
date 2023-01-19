@@ -16,10 +16,10 @@ import (
 	"github.com/djherbis/times"
 )
 
-// ErrorFileAlreadyExist is a error when file already exist
+// ErrFileAlreadyExist is a error when file already exist
 var (
-	ErrorFileAlreadyExist = fmt.Errorf("file already exist")
-	ErrorFileNotExist     = fmt.Errorf("file not exist")
+	ErrFileAlreadyExist = fmt.Errorf("file already exist")
+	ErrFileNotExist     = fmt.Errorf("file not exist")
 )
 
 // GetFileSize return file size in human readable format, like 1.2M, 1.2G
@@ -63,7 +63,7 @@ func GetAllFilesWithExtension(rootDir string, extNames []string) ([]string, erro
 			return err
 		}
 		// keep path if to lower is in extNames
-		if !d.IsDir() && contains(extNames, strings.ToLower(filepath.Ext(path))) {
+		if !d.IsDir() && Contains(extNames, strings.ToLower(filepath.Ext(path))) {
 			ret = append(ret, path)
 		}
 		return nil
@@ -71,13 +71,21 @@ func GetAllFilesWithExtension(rootDir string, extNames []string) ([]string, erro
 	return ret, err
 }
 
-func contains[T comparable](elements []T, v T) bool {
+func Contains[T comparable](elements []T, v T) bool {
 	for _, s := range elements {
 		if v == s {
 			return true
 		}
 	}
 	return false
+}
+
+func Keys[T comparable, U any](m map[T]U) []T {
+	ret := []T{}
+	for k := range m {
+		ret = append(ret, k)
+	}
+	return ret
 }
 
 func DeleteDir(dir string) error {
@@ -139,7 +147,7 @@ func MoveFile(srcPath, dstPath string) error {
 	// move file from srcPath to dstPath
 	// if dstPath exist, return error
 	if _, err := os.Stat(dstPath); !os.IsNotExist(err) {
-		return ErrorFileAlreadyExist
+		return ErrFileAlreadyExist
 	}
 	// create parent dir for dstPath if not exist
 	parentDir := filepath.Dir(dstPath)
@@ -166,6 +174,9 @@ func ExtractTimeFromFileName(filePath string) (time.Time, error) {
 }
 
 func IsFileExist(path string) bool {
+	if path == "" {
+		return true
+	}
 	// check if file exist
 	if _, err := os.Stat(path); os.IsNotExist(err) {
 		return false
@@ -177,7 +188,7 @@ func CopyFileWithIO(srcPath, dstPath string) error {
 	// cp file from srcPath to dstPath
 	// if dstPath exist, return error
 	if _, err := os.Stat(dstPath); !os.IsNotExist(err) {
-		return ErrorFileAlreadyExist
+		return ErrFileAlreadyExist
 	}
 	// create parent dir for dstPath if not exist
 	parentDir := filepath.Dir(dstPath)
@@ -208,7 +219,7 @@ func ReadLines(filePath string) ([]string, error) {
 	// read all lines from file
 	// if file not exist, return error
 	if _, err := os.Stat(filePath); os.IsNotExist(err) {
-		return []string{}, ErrorFileNotExist
+		return []string{}, ErrFileNotExist
 	}
 	// read file
 	file, err := os.Open(filePath)
@@ -232,7 +243,7 @@ func WriteLines(fileName string, lines []string) error {
 	// write lines to file
 	// if file exist, return error
 	if _, err := os.Stat(fileName); !os.IsNotExist(err) {
-		return ErrorFileAlreadyExist
+		return ErrFileAlreadyExist
 	}
 	// create parent dir for dstPath if not exist
 	parentDir := filepath.Dir(fileName)
@@ -253,7 +264,7 @@ func OverWriteFile(filePath string, content string) error {
 	// write content to file
 	// if file not exist, return error
 	if _, err := os.Stat(filePath); os.IsNotExist(err) {
-		return ErrorFileNotExist
+		return ErrFileNotExist
 	}
 	// save file to tmp file with timestamp
 	filename := filepath.Base(filePath)
@@ -288,7 +299,7 @@ func CreateSymlink(srcPath, dstPath string) error {
 	// create symlink from srcPath to dstPath
 	// if dstPath exist, return error
 	if _, err := os.Stat(dstPath + ".tmp"); !os.IsNotExist(err) {
-		return ErrorFileAlreadyExist
+		return ErrFileAlreadyExist
 	}
 	// create parent dir for dstPath if not exist
 	parentDir := filepath.Dir(dstPath)
