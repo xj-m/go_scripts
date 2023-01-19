@@ -182,6 +182,13 @@ func (t *Task) ToContent() string {
 	return ret
 }
 
+func (t *Task) SortItemsByPriority() {
+	for _, task := range t.TaskName2task {
+		task.SortItemsByPriority()
+	}
+	sort.Sort(t.Items)
+}
+
 type Tasks []*Task
 
 func (s Tasks) Len() int {
@@ -224,6 +231,20 @@ type Item struct {
 	TagNames []string
 	// TODO (xiangjun.ma) parser tags from content
 	// TODO (xiangjun.ma) use status to indicate whether this item is done
+}
+
+func (item *Item) GetPriority() int {
+	for k := range item.TagK2v {
+		switch k {
+		case "critical":
+			return 100
+		case "high":
+			return 50
+		case "low":
+			return -50
+		}
+	}
+	return 0
 }
 
 func (item *Item) ToContent() string {
@@ -278,6 +299,22 @@ func (s Items) Contains(item Item) bool {
 	}
 	return false
 }
+
+func (s Items) Len() int {
+	return len(s)
+}
+
+func (s Items) Swap(i, j int) {
+	s[i], s[j] = s[j], s[i]
+}
+
+func (s Items) Less(i, j int) bool {
+	pI := s[i].GetPriority()
+	pJ := s[j].GetPriority()
+	return pI > pJ
+}
+
+var _ sort.Interface = Items{}
 
 func isEq[T comparable](a, b []T) bool {
 	if len(a) != len(b) {

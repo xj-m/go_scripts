@@ -245,7 +245,7 @@ func TestDailyPop(t *testing.T) {
 	// remove parts that doesn't want to be merged
 	srcTask.FilterItems(FilterHighPriority, FilterNotEmptyItem)
 	srcTask.Filter(
-		FilterRoutineArchive,
+		FilterNotRoutineArchive,
 		FilterNotEmptyTask,
 	)
 

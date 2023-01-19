@@ -7,6 +7,7 @@ import (
 
 	"github.com/sirupsen/logrus"
 	"github.com/xj-m/go_scripts/file"
+	"github.com/xj-m/go_scripts/task"
 )
 
 // func get_times_from_daily_folder
@@ -77,9 +78,18 @@ func GetTodayTodoFilePath() string {
 	return filepath.Join(scheduleDirName, TimeToFileName(time.Now()))
 }
 
+func GetTmrTodoFilePath() string {
+	scheduleDirName := "schedule"
+	return filepath.Join(scheduleDirName, TimeToFileName(time.Now().Add(24*time.Hour)))
+}
 
 func GetTodaySymlink() string {
 	scheduleDirName := "schedule"
 	return filepath.Join(scheduleDirName, TimeToFileName(time.Now()))
 }
 
+func SortAndOverWriteTaskFile(fp string) error {
+	task, _ := task.ParseTaskFromTodoFile(fp)
+	task.SortItemsByPriority()
+	return file.OverWriteFile(fp, task.ToContent())
+}

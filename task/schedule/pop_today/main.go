@@ -32,7 +32,7 @@ func main() {
 		task.FilterNotEmptyItem,
 	)
 	srcTask.Filter(
-		task.FilterRoutineArchive,
+		task.FilterNotRoutineArchive,
 		task.FilterNotEmptyTask,
 	)
 

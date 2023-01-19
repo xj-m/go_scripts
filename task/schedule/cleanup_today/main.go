@@ -31,7 +31,7 @@ func main() {
 		panic(err)
 	}
 	// remove parts that doesn't want to be merged
-	srcTask.TaskName2task["all"].Filter(task.FilterRoutineArchive)
+	srcTask.TaskName2task["all"].Filter(task.FilterNotRoutineArchive)
 
 	// read dst
 	dstTask, err := task.ParseTaskFromTodoFile(dstFilePath)
@@ -40,6 +40,7 @@ func main() {
 	}
 	// merge
 	mergedTask := task.MergeTasks(srcTask, dstTask)
+	mergedTask.SortItemsByPriority()
 	// write to dst
 	err = file.OverWriteFile(dstFilePath, mergedTask.ToContent())
 	if err != nil {

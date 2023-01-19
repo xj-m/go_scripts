@@ -3,7 +3,7 @@ package main
 
 import (
 	"fmt"
-	"time"
+	"path/filepath"
 
 	"github.com/xj-m/go_scripts/file"
 	"github.com/xj-m/go_scripts/task/schedule"
@@ -23,7 +23,7 @@ func main() {
 
 	// create today+tmr schedule
 	todayFilePath := schedule.GetTodayTodoFilePath()
-	tmrFilename := addScheduleFolder(schedule.TimeToFileName(time.Now().Add(24 * time.Hour)))
+	tmrFilename := schedule.GetTmrTodoFilePath()
 	for _, newFilePath := range []string{
 		todayFilePath,
 		tmrFilename,
@@ -34,13 +34,21 @@ func main() {
 			}
 		}
 	}
+
 	// create "today.todo" as symlink to today's schedule
-	todaySymlink := addScheduleFolder("today.todo")
+	todaySymlink := schedule.GetTodaySymlink()
 	if !file.IsFileExist(todaySymlink) {
-		if symlinkErr := file.CreateSymlink(todayFileName, todaySymlink); symlinkErr != nil {
+		if symlinkErr := file.CreateSymlink(filepath.Base(todayFilePath), todaySymlink); symlinkErr != nil {
 			panic(symlinkErr)
 		}
 	}
+
+	// sort and overwrite todo.todo
+	err = schedule.SortAndOverWriteTaskFile("todo.todo")
+	if err != nil {
+		panic(err)
+	}
+
 	// cmdline use "code" open today.todo schedule
 	err = file.RunCmd("code", todayFilePath)
 	if err != nil {
