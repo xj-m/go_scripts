@@ -225,24 +225,29 @@ func TestParseThenWrite(t *testing.T) {
 	}
 }
 
-func TestDailyMerge(t *testing.T) {
-	MAIN_TODO_FILE := "todo.todo"
+func TestDailyPop(t *testing.T) {
+	mainTodoFile := "todo.todo"
 
-	curTodoFilePath := "2023-01-18.todo"
+	todayTodoFilePath := "2023-01-18.todo"
 	// if curTodoFilePath not exist, panic
-	if _, err := os.Stat(curTodoFilePath); err != nil {
+	if _, err := os.Stat(todayTodoFilePath); err != nil {
 		panic(err)
 	}
 
-	srcFilePath := curTodoFilePath
-	dstFilePath := MAIN_TODO_FILE
+	srcFilePath := mainTodoFile
+	dstFilePath := todayTodoFilePath
 
 	srcTask, err := ParseTaskFromTodoFile(srcFilePath)
 	if err != nil {
 		panic(err)
 	}
+
 	// remove parts that doesn't want to be merged
-	srcTask.TaskName2task["all"].FilterItems(HighPriorityFilter)
+	srcTask.FilterItems(FilterHighPriority, FilterNotEmptyItem)
+	srcTask.Filter(
+		FilterRoutineArchive,
+		FilterNotEmptyTask,
+	)
 
 	// read dst
 	dstTask, err := ParseTaskFromTodoFile(dstFilePath)
@@ -253,6 +258,18 @@ func TestDailyMerge(t *testing.T) {
 	mergedTask := MergeTasks(srcTask, dstTask)
 	// write to dst
 	err = file.OverWriteFile(dstFilePath, mergedTask.ToContent())
+	if err != nil {
+		panic(err)
+	}
+
+	// update src with high priority task removed
+	// srcTaskDup.FilterItems(FilterHighPriority)
+	// srcTaskDup.Filter(
+	// 	FilterNotEmptyTask,
+	// )
+	srcTask, _ = ParseTaskFromTodoFile(srcFilePath)
+	srcTask.FilterItems(FilterNotHighPriority)
+	err = file.OverWriteFile(srcFilePath, srcTask.ToContent())
 	if err != nil {
 		panic(err)
 	}

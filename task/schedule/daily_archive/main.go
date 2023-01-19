@@ -3,7 +3,6 @@ package main
 
 import (
 	"fmt"
-	"path/filepath"
 	"time"
 
 	"github.com/xj-m/go_scripts/file"
@@ -22,9 +21,8 @@ func main() {
 		panic(err)
 	}
 
-	todayFileName := schedule.TimeToFileName(time.Now())
 	// create today+tmr schedule
-	todayFilePath := addScheduleFolder(todayFileName)
+	todayFilePath := schedule.GetTodayTodoFilePath()
 	tmrFilename := addScheduleFolder(schedule.TimeToFileName(time.Now().Add(24 * time.Hour)))
 	for _, newFilePath := range []string{
 		todayFilePath,
@@ -48,8 +46,4 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
-}
-
-func addScheduleFolder(fileName string) string {
-	return filepath.Join(scheduleDirName, fileName)
 }

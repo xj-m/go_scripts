@@ -249,21 +249,22 @@ func WriteLines(fileName string, lines []string) error {
 	return nil
 }
 
-func OverWriteFile(fileName string, content string) error {
+func OverWriteFile(filePath string, content string) error {
 	// write content to file
 	// if file not exist, return error
-	if _, err := os.Stat(fileName); os.IsNotExist(err) {
+	if _, err := os.Stat(filePath); os.IsNotExist(err) {
 		return ErrorFileNotExist
 	}
 	// save file to tmp file with timestamp
-	tmpFileName := "tmp/" + fileName + "." + strconv.FormatInt(time.Now().Unix(), 10)
+	filename := filepath.Base(filePath)
+	tmpFileName := "tmp/" + filename + "." + strconv.FormatInt(time.Now().Unix(), 10)
 	MkdirIfNotExist("tmp")
 	err := ioutil.WriteFile(tmpFileName, []byte(content), 0o644)
 	if err != nil {
 		return err
 	}
 	// write content to file
-	err = ioutil.WriteFile(fileName, []byte(content), 0o644)
+	err = ioutil.WriteFile(filePath, []byte(content), 0o644)
 	if err != nil {
 		return err
 	}
