@@ -12,10 +12,12 @@ import (
 )
 
 var (
-	ScheduleDirPath  = "schedule"
-	MainTodoFilePath = "todo.todo"
-	TemplateFilePath = ScheduleDirPath + "/temp-daily.todo"
-	ArchivedDirName  = "archived/todo"
+	ScheduleDirPath                   = "schedule"
+	MainTodoFilePath                  = "todo.todo"
+	TemplateFilePath                  = ScheduleDirPath + "/temp-daily.todo"
+	SundayTemplateFilePath            = ScheduleDirPath + "/temp-sunday.todo"
+	LastSundayInMonthTemplateFilePath = ScheduleDirPath + "/temp-last_sunday.todo"
+	ArchivedDirName                   = "archived/todo"
 )
 
 // func get_times_from_daily_folder

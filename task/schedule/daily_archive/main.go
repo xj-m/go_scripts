@@ -3,6 +3,7 @@ package main
 
 import (
 	"path/filepath"
+	"time"
 
 	"github.com/sirupsen/logrus"
 	"github.com/xj-m/go_scripts/file"
@@ -15,7 +16,7 @@ func main() {
 		panic(err)
 	}
 
-	// create today+tmr schedule
+	// * create today+tmr schedule
 	todayFilePath, _ := schedule.GetTodayTodoFilePath()
 	tmrFilename, _ := schedule.GetTmrTodoFilePath()
 	for _, newFilePath := range []string{
@@ -23,14 +24,25 @@ func main() {
 		tmrFilename,
 	} {
 		if !file.IsFileExist(newFilePath) {
-			logrus.Infof("[task/daily] start to create new schedule file %s", newFilePath)
-			if copyErr := file.CopyFileWithIO(schedule.TemplateFilePath, newFilePath); copyErr != nil {
+			// * if today is sunday, use sunday template
+			templatePath := schedule.TemplateFilePath
+			switch time.Now().Weekday() {
+			case time.Sunday:
+				templatePath = schedule.SundayTemplateFilePath
+				if time.Now().AddDate(0, 0, 7).Month() != time.Now().Month() {
+					templatePath = schedule.LastSundayInMonthTemplateFilePath
+				}
+			}
+
+			// * copy template file to today.todo and tmr.todo
+			logrus.Infof("[task/daily] start to copy template file %s to %s", templatePath, newFilePath)
+			if copyErr := file.CopyFileWithIO(templatePath, newFilePath); copyErr != nil {
 				panic(copyErr)
 			}
 		}
 	}
 
-	// create "today.todo" as symlink to today's schedule
+	// * create "today.todo" as symlink to today's schedule
 	todaySymlink := schedule.GetTodaySymlink()
 	logrus.Infof("[task/daily] created symlink (%v) to (%v)", todaySymlink, todayFilePath)
 	if !file.IsFileExist(todaySymlink) {
@@ -39,14 +51,14 @@ func main() {
 		}
 	}
 
-	// sort and overwrite todo.todo
+	// * sort and overwrite todo.todo
 	logrus.Infof("[task/daily] start to sort and overwrite (%v)", schedule.MainTodoFilePath)
 	err = schedule.SortAndOverWriteTaskFile(schedule.MainTodoFilePath)
 	if err != nil {
 		panic(err)
 	}
 
-	// cmdline use "code" open today.todo schedule
+	// * cmdline use "code" open today.todo schedule
 	logrus.Infof("[task/daily] start to open (%v)", todayFilePath)
 	err = file.RunCmd("code", todayFilePath)
 	if err != nil {
