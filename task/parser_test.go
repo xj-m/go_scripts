@@ -1,12 +1,17 @@
 package task
 
 import (
+	"bytes"
+	"fmt"
 	"io/ioutil"
 	"os"
+	"path/filepath"
 	"reflect"
 	"testing"
 
+	"github.com/sirupsen/logrus"
 	"github.com/xj-m/go_scripts/file"
+	"github.com/xj-m/go_scripts/log"
 )
 
 func TestMergeTasks(t *testing.T) {
@@ -273,4 +278,34 @@ func TestDailyPop(t *testing.T) {
 	if err != nil {
 		panic(err)
 	}
+}
+
+func TestLogger(t *testing.T) {
+	a := log.GetLogger(nil)
+	a.Error("test")
+}
+
+type myFormatter struct{}
+
+func (m *myFormatter) Format(entry *logrus.Entry) ([]byte, error) {
+	// NOTE (xiangjun.ma) usage example <https://cloud.tencent.com/developer/article/1830710>
+	var b *bytes.Buffer
+	if entry.Buffer != nil {
+		b = entry.Buffer
+	} else {
+		b = &bytes.Buffer{}
+	}
+
+	timestamp := entry.Time.Format("2006-01-02 15:04:05")
+	var newLog string
+
+	print(entry.Caller == nil)
+	fName := filepath.Base(entry.Caller.File)
+	newLog = fmt.Sprintf(
+		"[%s] [%s] [%s:%d] %s\n",
+		timestamp, entry.Level, fName, entry.Caller.Line, entry.Message,
+	)
+
+	b.WriteString(newLog)
+	return b.Bytes(), nil
 }

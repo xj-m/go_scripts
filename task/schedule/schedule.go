@@ -6,8 +6,8 @@ import (
 	"path/filepath"
 	"time"
 
-	"github.com/sirupsen/logrus"
 	"github.com/xj-m/go_scripts/file"
+	"github.com/xj-m/go_scripts/log"
 	"github.com/xj-m/go_scripts/task"
 )
 
@@ -32,7 +32,7 @@ func GetFp2timeUnderDir(scheduleDirName string) map[string]time.Time {
 	for _, todoFile := range todoFiles {
 		t, err := file.ExtractTimeFromFileName(todoFile)
 		if err != nil {
-			logrus.Error(err)
+			log.GetLogger(nil).Error(err)
 			continue
 		}
 		fp2times[todoFile] = t
@@ -69,7 +69,7 @@ func ArchiveScheduleTodoFiles(scheduleDirName, archiveDirName string) error {
 }
 
 func MoveTaskAndOverwriteDst(srcFilePath, dstFilePath string) error {
-	logrus.Infof("[task] move task from %s to %s", srcFilePath, dstFilePath)
+	log.GetLogger(nil).Infof("[task] move task from %s to %s", srcFilePath, dstFilePath)
 
 	// parse task from src
 	srcTask, err := task.ParseTaskFromTodoFile(srcFilePath)

@@ -2,8 +2,8 @@
 package main
 
 import (
-	"github.com/sirupsen/logrus"
 	"github.com/xj-m/go_scripts/file"
+	"github.com/xj-m/go_scripts/log"
 	"github.com/xj-m/go_scripts/photo"
 )
 
@@ -50,7 +50,7 @@ func gifWork(todoDir, tmpTodoDir, dstDir string) {
 	// for outputGifFileName, change the create time and modify time to the first file's create time and modify time
 	err = file.MatchFileTime(originalFiles[0], fp)
 
-	logrus.Info("gif generated at: ", fp)
+	log.GetLogger(nil).Info("gif generated at: ", fp)
 
 	// del dir tmpTodoDir
 	err = file.DeleteDir(tmpTodoDir)

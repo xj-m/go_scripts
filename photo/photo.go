@@ -8,8 +8,8 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/sirupsen/logrus"
 	"github.com/xj-m/go_scripts/file"
+	"github.com/xj-m/go_scripts/log"
 )
 
 func BulkCompressPhoto(srcDir, copyToDirName string) {
@@ -34,7 +34,7 @@ func BulkCompressPhoto(srcDir, copyToDirName string) {
 
 		err := cmd.Run()
 		if err != nil {
-			logrus.Error(fmt.Sprintf("cmd failed: %s", strings.Join(cmd.Args, " ")))
+			log.GetLogger(nil).Error(fmt.Sprintf("cmd failed: %s", strings.Join(cmd.Args, " ")))
 			panic(err)
 		}
 	}
@@ -76,7 +76,7 @@ func MakeGif(filePaths []string, dstDir string) (filePath string, err error) {
 	outputGifFileName := filepath.Join(dstDir, fmt.Sprintf("%s.gif", filepath.Base(filePaths[0])))
 	cmd.Args = append(cmd.Args, outputGifFileName)
 
-	logrus.Info(cmd.String())
+	log.GetLogger(nil).Info(cmd.String())
 	var stdErr strings.Builder
 	cmd.Stderr = &stdErr
 
