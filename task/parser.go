@@ -71,7 +71,11 @@ func ParseTaskFromTodoFile(todoFile string) (Task, error) {
 			curItem = &newItem
 		default:
 			// else treat as comment
-			curItem.Comments = append(curItem.Comments, parseRes.Content)
+			if len(curTask.TaskName2task) == 0 {
+				curTask.Comments = append(curTask.Comments, parseRes.Content)
+			} else {
+				curItem.Comments = append(curItem.Comments, parseRes.Content)
+			}
 		}
 	}
 	return head, nil
@@ -79,6 +83,14 @@ func ParseTaskFromTodoFile(todoFile string) (Task, error) {
 
 func MergeTasks(srcTask, dstTask Task) Task {
 	ret := dstTask
+	// merge comments
+	for _, comment := range srcTask.Comments {
+		if !contains(ret.Comments, comment) {
+			ret.Comments = append(ret.Comments, comment)
+		}
+	}
+
+	// merge taskName2task
 	for taskName, srcSubTask := range srcTask.TaskName2task {
 		if dstSubTask, ok := dstTask.TaskName2task[taskName]; ok {
 			mergedTask := MergeTasks(*srcSubTask, *dstSubTask)
@@ -96,6 +108,7 @@ func MergeTasks(srcTask, dstTask Task) Task {
 		}
 		ret.Items = append(ret.Items, itemI)
 	}
+
 	// merge TagK2V
 	for k, v := range srcTask.TagK2v {
 		if _, ok := ret.TagK2v[k]; !ok {

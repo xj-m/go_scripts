@@ -71,6 +71,7 @@ type Task struct {
 	TagK2v        tagK2v
 	TagNames      []string
 	Status        string
+	Comments      []string
 }
 
 func (t *Task) RemoveTaskByNames(taskNames []string) {
@@ -153,12 +154,20 @@ func (t *Task) FindParentTask(level int) *Task {
 
 func (t *Task) ToContent() string {
 	base, lines := "", []string{}
+
+	// if task is not root task, add task name and tags
 	if t.Level != -1 {
 		base = strings.Repeat("\t", t.Level)
 		lines = []string{
 			base + t.Name + ":" + t.TagK2v.ToContent(t.TagNames),
 		}
 	}
+	// output comments
+	for _, comment := range t.Comments {
+		lines = append(lines, base+"\t"+comment)
+	}
+
+	// output items
 	for _, item := range t.Items {
 		lines = append(lines, item.ToContent())
 	}
@@ -176,6 +185,8 @@ func (t *Task) ToContent() string {
 	if len(t.Items) == 0 && len(t.TaskName2task) == 0 {
 		lines = append(lines, base+"\t❍ ")
 	}
+
+	// join lines
 	ret := strings.Join(lines, "\n")
 	// replace tab with 4 spaces
 	ret = strings.ReplaceAll(ret, "\t", "    ")
