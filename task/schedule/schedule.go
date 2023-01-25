@@ -45,7 +45,7 @@ func ArchiveScheduleTodoFiles(scheduleDirName, archiveDirName string) error {
 	for fp, t := range GetFp2timeUnderDir(scheduleDirName) {
 		if t.Before(file.TruncateToDay(time.Now())) {
 			// move unfinished task to main todo file
-			MoveTaskAndOverwriteDst(fp, MainTodoFilePath)
+			MoveTaskAndOverwriteBoth(fp, MainTodoFilePath)
 
 			// archive
 			year, mon, _ := file.GetYearMonDay(t)
@@ -68,7 +68,7 @@ func ArchiveScheduleTodoFiles(scheduleDirName, archiveDirName string) error {
 	return nil
 }
 
-func MoveTaskAndOverwriteDst(srcFilePath, dstFilePath string) error {
+func MoveTaskAndOverwriteBoth(srcFilePath, dstFilePath string) error {
 	log.GetLogger(nil).Infof("[task] move task from %s to %s", srcFilePath, dstFilePath)
 
 	// parse task from src
@@ -76,7 +76,7 @@ func MoveTaskAndOverwriteDst(srcFilePath, dstFilePath string) error {
 	if err != nil {
 		return err
 	}
-	srcTask.TaskName2task["all"].Filter(task.FilterNotRoutineArchive)
+	srcTask.TaskName2task["all"].Filter(task.FilterTaskNotRoutineArchive)
 
 	// read dst
 	dstTask, err := task.ParseTaskFromTodoFile(dstFilePath)
@@ -93,6 +93,18 @@ func MoveTaskAndOverwriteDst(srcFilePath, dstFilePath string) error {
 	if err != nil {
 		return err
 	}
+
+	// parse task from src, only keep routine archive task, and write to src
+	srcTask, err = task.ParseTaskFromTodoFile(srcFilePath)
+	if err != nil {
+		return err
+	}
+	srcTask.TaskName2task["all"].Filter(task.FilterTaskRoutineArchive)
+	err = file.OverWriteFile(srcFilePath, srcTask.ToContent())
+	if err != nil {
+		return err
+	}
+
 	return nil
 }
 

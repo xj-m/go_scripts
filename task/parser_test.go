@@ -248,10 +248,10 @@ func TestDailyPop(t *testing.T) {
 	}
 
 	// remove parts that doesn't want to be merged
-	srcTask.FilterItems(FilterHighPriority, FilterNotEmptyItem)
+	srcTask.FilterItems(FilterItemHighPriority, FilterItemNotEmpty)
 	srcTask.Filter(
-		FilterNotRoutineArchive,
-		FilterNotEmptyTask,
+		FilterTaskNotRoutineArchive,
+		FilterTaskNotEmpty,
 	)
 
 	// read dst
@@ -273,7 +273,7 @@ func TestDailyPop(t *testing.T) {
 	// 	FilterNotEmptyTask,
 	// )
 	srcTask, _ = ParseTaskFromTodoFile(srcFilePath)
-	srcTask.FilterItems(FilterNotHighPriority)
+	srcTask.FilterItems(FilterItemNotHighPriority)
 	err = file.OverWriteFile(srcFilePath, srcTask.ToContent())
 	if err != nil {
 		panic(err)
@@ -309,3 +309,4 @@ func (m *myFormatter) Format(entry *logrus.Entry) ([]byte, error) {
 	b.WriteString(newLog)
 	return b.Bytes(), nil
 }
+

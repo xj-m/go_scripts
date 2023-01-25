@@ -67,6 +67,7 @@ func ParseTaskFromTodoFile(todoFile string) (Task, error) {
 			if newItem.Level < curTask.Level+1 {
 				curTask = curTask.Parent
 			}
+			newItem.ParentTask = curTask
 			curTask.Items = append(curTask.Items, &newItem)
 			curItem = &newItem
 		default:

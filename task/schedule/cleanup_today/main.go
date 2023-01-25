@@ -8,7 +8,7 @@ import (
 
 func main() {
 	for _, srcFilePath := range getToCleanupFilePaths() {
-		schedule.MoveTaskAndOverwriteDst(srcFilePath, schedule.MainTodoFilePath)
+		schedule.MoveTaskAndOverwriteBoth(srcFilePath, schedule.MainTodoFilePath)
 	}
 }
 

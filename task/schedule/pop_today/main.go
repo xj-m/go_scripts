@@ -29,12 +29,12 @@ func main() {
 
 	// remove parts that doesn't want to be merged
 	srcTask.TaskName2task["all"].FilterItems(
-		task.FilterHighPriority,
-		task.FilterNotEmptyItem,
+		task.FilterItemHighPriority,
+		task.FilterItemNotEmpty,
 	)
 	srcTask.Filter(
-		task.FilterNotRoutineArchive,
-		task.FilterNotEmptyTask,
+		task.FilterTaskNotRoutineArchive,
+		task.FilterTaskNotEmpty,
 	)
 
 	// read dst
@@ -54,7 +54,10 @@ func main() {
 
 	// update src with high priority task removed
 	srcTask, _ = task.ParseTaskFromTodoFile(srcFilePath)
-	srcTask.TaskName2task["all"].FilterItems(task.FilterNotHighPriority)
+	srcTask.TaskName2task["all"].FilterItems(task.FilterItemNotHighPriority, task.FilterItemNotEmpty)
+	srcTask.Filter(
+		task.FilterTaskNotEmpty,
+	)
 	err = file.OverWriteFile(srcFilePath, srcTask.ToContent())
 	if err != nil {
 		panic(err)

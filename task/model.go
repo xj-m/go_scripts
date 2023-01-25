@@ -182,6 +182,7 @@ func (t *Task) ToContent() string {
 			lines = append(lines, "")
 		}
 	}
+
 	if len(t.Items) == 0 && len(t.TaskName2task) == 0 {
 		lines = append(lines, base+"\t❍ ")
 	}
@@ -234,12 +235,13 @@ var TaskName2Priority = map[string]int{
 }
 
 type Item struct {
-	Status   ItemStatus
-	Content  string
-	Comments []string
-	Level    int
-	TagK2v   tagK2v
-	TagNames []string
+	Status     ItemStatus
+	Content    string
+	Comments   []string
+	Level      int
+	TagK2v     tagK2v
+	TagNames   []string
+	ParentTask *Task
 	// TODO (xiangjun.ma) parser tags from content
 	// TODO (xiangjun.ma) use status to indicate whether this item is done
 }
