@@ -96,6 +96,24 @@ func (t *Task) RemoveItem(itemToRemove *Item) {
 	}
 }
 
+func (t *Task) SubTask(taskToRemove *Task) *Task {
+	// copy t to ret
+	ret := &Task{}
+	mergo.Merge(ret, t)
+	for taskName, subTask := range ret.TaskName2task {
+		// check the taskName that also in taskToRemove
+		if subTaskToRemove, ok := taskToRemove.TaskName2task[taskName]; ok {
+			// scan items, remove the same one
+			for _, item := range subTaskToRemove.Items {
+				subTask.RemoveItem(item)
+			}
+			// check the subTask that also in taskToRemove
+			subTask.SubTask(subTaskToRemove)
+		}
+	}
+	return ret
+}
+
 func (t *Task) Filter(fs ...func(task Task) bool) {
 	for _, task := range t.TaskName2task {
 		task.Filter(fs...)

@@ -84,17 +84,17 @@ func MoveTaskAndOverwriteBoth(srcFilePath, dstFilePath string) error {
 		panic(err)
 	}
 
-	// create new task with merged items
+	// create mergedTask (merged = src + dst)
 	mergedTask := task.MergeTasks(srcTask, dstTask)
 	mergedTask.SortItemsByPriority()
 
-	// write to dst
+	// overwrite mergedTask to dst
 	err = file.OverWriteFile(dstFilePath, mergedTask.ToContent())
 	if err != nil {
 		return err
 	}
 
-	// parse task from src, only keep routine archive task, and write to src
+	// parse task from src, only keep routine archive task, and overwrite to src
 	srcTask, err = task.ParseTaskFromTodoFile(srcFilePath)
 	if err != nil {
 		return err
