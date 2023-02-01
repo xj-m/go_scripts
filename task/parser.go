@@ -214,3 +214,30 @@ func isItem(runes []rune) bool {
 		return false
 	}
 }
+
+func ItemsToTaskByProjectTag(items Items) Task {
+	head := Task{
+		TaskName2task: map[string]*Task{},
+		TaskNames:     []string{},
+		Items:         items,
+		Level:         0,
+	}
+	for _, item := range items {
+		projectStr := item.TagK2v["project"]
+		projects := strings.Split(projectStr, ".")
+		curTask := &head
+		for _, project := range projects {
+			if _, ok := curTask.TaskName2task[project]; !ok {
+				curTask.TaskName2task[project] = &Task{
+					TaskName2task: map[string]*Task{},
+					TaskNames:     []string{},
+					Level:         curTask.Level + 1,
+				}
+				curTask.TaskNames = append(curTask.TaskNames, project)
+			}
+			curTask = curTask.TaskName2task[project]
+		}
+		curTask.Items = append(curTask.Items, item)
+	}
+	return head
+}
