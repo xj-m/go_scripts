@@ -2,8 +2,6 @@
 package main
 
 import (
-	"os"
-
 	"github.com/xj-m/go_scripts/file"
 	"github.com/xj-m/go_scripts/task"
 	"github.com/xj-m/go_scripts/task/schedule"
@@ -15,13 +13,8 @@ func main() {
 		panic(err)
 	}
 
-	// if curTodoFilePath not exist, panic
-	if _, err := os.Stat(todayFilePath); err != nil {
-		panic(err)
-	}
-
+	// read src
 	srcFilePath := schedule.MainTodoFilePath
-
 	srcTask, err := task.ParseTaskFromTodoFile(srcFilePath)
 	if err != nil {
 		panic(err)
