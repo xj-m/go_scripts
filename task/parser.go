@@ -72,7 +72,7 @@ func ParseTaskFromTodoFile(todoFile string) (Task, error) {
 			curItem = &newItem
 		default:
 			// else treat as comment
-			if len(curTask.TaskName2task) == 0 {
+			if len(curTask.Items) == 0 {
 				curTask.Comments = append(curTask.Comments, parseRes.Content)
 			} else {
 				curItem.Comments = append(curItem.Comments, parseRes.Content)
