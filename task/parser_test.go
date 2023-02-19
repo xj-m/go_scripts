@@ -310,3 +310,18 @@ func (m *myFormatter) Format(entry *logrus.Entry) ([]byte, error) {
 	return b.Bytes(), nil
 }
 
+func TestReadArchive(t *testing.T) {
+	// log "test"
+	print("test")
+	// read task from "test.todo"
+	task, err := ParseTaskFromTodoFile("test.todo")
+	if err != nil {
+		t.Errorf("ParseTaskFromTodoFile() error = %v", err)
+		return
+	}
+	// print task content
+	task.MapArchivedBackToTask()
+	print(task.ToContent())
+	// write task to "ut_out.todo"
+	file.OverWriteFile("ut_out.todo", task.ToContent())
+}

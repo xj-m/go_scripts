@@ -219,6 +219,60 @@ func (t *Task) SortItemsByPriority() {
 	sort.Sort(t.Items)
 }
 
+// func (t *Task) GetArchivedItems(){
+// }
+
+func (t *Task) Root() *Task {
+	if t.Parent == nil {
+		return t
+	}
+	return t.Parent.Root()
+}
+
+func (t *Task) MapArchivedBackToTask() {
+	for _, task := range t.TaskName2task {
+		task.MapArchivedBackToTask()
+	}
+	root := t.Root()
+	for _, item := range t.Items {
+		// * get project tag value
+		if project, ok := item.TagK2v["project"]; ok {
+			tasks := strings.Split(project, ".")
+
+			// * parse the tag value "a.b.c", locate task with "root -> a -> b -> c"
+			cur := root
+			for _, taskName := range tasks {
+				if task, ok := cur.TaskName2task[taskName]; ok {
+					cur = task
+				} else {
+					newTask := &Task{
+						TaskName2task: map[string]*Task{},
+						Items:         []*Item{},
+						Level:         cur.Level + 1,
+						Name:          taskName,
+						Parent:        cur,
+					}
+					cur.TaskName2task[taskName] = newTask
+					cur.TaskNames = append(cur.TaskNames, taskName)
+					cur = newTask
+				}
+			}
+
+			// * append item to the found task
+			item.Level = cur.Level + 1
+			cur.Items = append(cur.Items, item)
+
+			// * remove the original item
+			for i, item := range t.Items {
+				if item == item {
+					t.Items = append(t.Items[:i], t.Items[i+1:]...)
+					break
+				}
+			}
+		}
+	}
+}
+
 type Tasks []*Task
 
 func (s Tasks) Len() int {
