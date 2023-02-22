@@ -3,6 +3,7 @@
 package photo
 
 import (
+	"context"
 	"fmt"
 	"os/exec"
 	"path/filepath"
@@ -12,7 +13,7 @@ import (
 	"github.com/xj-m/go_scripts/log"
 )
 
-func BulkCompressPhoto(srcDir, copyToDirName string) {
+func BulkCompressPhoto(ctx context.Context, srcDir, copyToDirName string) {
 	extNames := []string{".jpeg", ".jpg"}
 
 	file.MkdirIfNotExist(copyToDirName)
@@ -40,7 +41,7 @@ func BulkCompressPhoto(srcDir, copyToDirName string) {
 	}
 
 	// compress copyToDirName
-	file.BatchWork(copyToDirName, extNames, compressJPGFile)
+	file.BatchWork(ctx, copyToDirName, extNames, "compressed", compressJPGFile)
 }
 
 func compressJPGFile(fp string, dstDir string) error {

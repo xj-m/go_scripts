@@ -1,38 +1,63 @@
 package file
 
 import (
-	"path/filepath"
-	"strings"
+	"context"
+	"fmt"
 	"sync"
 
 	"github.com/xj-m/go_scripts/log"
 )
 
-const COMPRESSED_DIR_NAME = "compressed"
-
-func BatchWork(rootDir string, extNames []string, workFunc func(fp string, dstDir string) error) {
-	files, err := GetAllFilesWithExtension(rootDir, extNames)
+func BatchWork(ctx context.Context, srcDir string, extNames []string, dstDir string, workFunc func(fp string, dstDir string) error, workerNum int) error {
+	files, err := GetAllFilesWithExtension(srcDir, extNames)
 	if err != nil {
-		log.GetLogger(nil).Fatal(err)
-		return
+		return err
 	}
-	log.GetLogger(nil).Infof("files total %v: \n\t%v", len(files), strings.Join(files, "\n\t"))
-	wg := sync.WaitGroup{}
-	for i, fp := range files {
+
+	log.GetLogger(nil).Info(fmt.Sprintf("[BatchWork] found %d files", len(files)))
+
+	errCh := make(chan error, len(files))
+	workCh := make(chan string, len(files))
+	var wg sync.WaitGroup
+
+	// spawn workerNum goroutines to process files
+	for i := 0; i < workerNum; i++ {
 		wg.Add(1)
-		go func(fp string, i int) {
+		go func() {
 			defer wg.Done()
-			log.GetLogger(nil).Infof("[compressing](%v/%v): %v", i+1, len(files), fp)
-			err := workFunc(fp, COMPRESSED_DIR_NAME)
-			switch err {
-			case ErrFileAlreadyExist:
-				log.GetLogger(nil).Infof("(%v/%v) file \"%v\" already exist, skip", i+1, len(files), fp)
-			case nil:
-				log.GetLogger(nil).Infof("(%v/%v) compress file \"%v\" success, size before: %v, after compress: %v", i+1, len(files), fp, GetFileSize(fp), GetFileSize(filepath.Join("compressed", fp)))
-			default:
-				log.GetLogger(nil).Errorf("(%v/%v) compress file \"%v\" failed: %v", i+1, len(files), fp, err)
+			for fp := range workCh {
+				select {
+				case <-ctx.Done():
+					return
+				default:
+					errCh <- workFunc(fp, dstDir)
+				}
 			}
-		}(fp, i)
+		}()
 	}
-	wg.Wait()
+
+	// enqueue files into workCh
+	go func() {
+		for _, fp := range files {
+			workCh <- fp
+		}
+		close(workCh)
+	}()
+
+	// wait for all work to complete or an error occurs
+	go func() {
+		wg.Wait()
+		close(errCh)
+	}()
+
+	var processed int
+	for err := range errCh {
+		if err != nil {
+			return err
+		}
+		processed++
+		log.GetLogger(nil).Info(fmt.Sprintf("[BatchWork] processed %d/%d files", processed, len(files)))
+	}
+
+	return nil
 }
