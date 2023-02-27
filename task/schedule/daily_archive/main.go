@@ -18,10 +18,8 @@ func main() {
 
 	// * create today+tmr schedule
 	todayFilePath, _ := schedule.GetTodayTodoFilePath()
-	tmrFilename, _ := schedule.GetTmrTodoFilePath()
 	for _, newFilePath := range []string{
 		todayFilePath,
-		tmrFilename,
 	} {
 		if !file.IsFileExist(newFilePath) {
 			// * if today is sunday, use sunday template
